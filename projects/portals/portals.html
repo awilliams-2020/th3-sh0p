@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <link rel="icon" href="https://th3-sh0p.com:8443/assets/img/briefcase.png">
+   <title>Th3-Sh0p</title>
+
+   <!-- Metas -->
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+   <meta property="og:site_name" content="Th3-Sh0p" />
+   <meta property="og:description" content="A software engineer who enjoys his profession" />
+   <meta property="og:image" content="">
+   <meta property="og:url" content="https://th3-sh0p.com:8443/">
+   <meta property="og:type" content="website" />
+
+   <!-- Css -->
+   <link href="https://th3-sh0p.com:8443/css/main.css" rel="stylesheet" type="text/css" media="all" />
+   <!-- AFrame -->
+   <script src="https://aframe.io/releases/1.2.0/aframe.js"></script>
+   <!-- AFrame Extras -->
+   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.0.1/dist/aframe-extras.min.js"></script>
+</head>
+
+<body>
+   <div class="loader">
+      <div class="loader-inner">
+         <div class="bounce">
+            <div class="bounce-circle"></div>
+         </div>
+      </div>
+   </div>
+
+   <a-scene raycaster="far: 100; objects: [link];" cursor="rayOrigin: mouse" id="scene" vr-mode-ui="enabled: false"
+      loading-screen="dotsColor: red; backgroundColor: black">
+      <a-assets>
+         <img id="place" src="../../assets/img/projects/portals/place.jpg"></img>
+         <img id="one" src="../../assets/img/projects/portals/1.jpg"></img>
+         <img id="two" src="../../../assets/img/projects/portals/2.jpg"></img>
+         <img id="three" src="../../assets/img/projects/portals/3.jpg"></img>
+         <img id="four" src="../../assets/img/projects/portals/4.jpg"></img>
+         <img id="five" src="../../assets/img/projects/portals/5.jpg"></img>
+         <img id="six" src="../../assets/img/projects/portals/6.jpg"></img>
+      </a-assets>
+      <title>Virtual Reality</title>
+      <a-entity id="camera" camera look-controls position="0 1.6 0"></a-entity>
+      <a-sky src="#place"></a-sky>
+      <a-link link="href:https://th3-sh0p.com:8443/projects/portals/I.html; image:#one" title="I" scale=".25 .25 .25" position="0 1.6 -.75">
+      </a-link>
+      <a-link link="href:https://th3-sh0p.com:8443/projects/portals/II.html; image:#two" title="II" scale=".25 .25 .25" rotation="0 -60 0"
+         position=".75 1.6 -.375"></a-link>
+      <a-link link="href:https://th3-sh0p.com:8443/projects/portals/III.html; image:#three" title="III" scale=".25 .25 .25" rotation="0 60 0"
+         position=".75 1.6 .375"></a-link>
+      <a-link link="href:https://th3-sh0p.com:8443/projects/portals/IV.html; image:#four" title="IV" scale=".25 .25 .25" position="0 1.6 .75">
+      </a-link>
+      <a-link link="href:https://th3-sh0p.com:8443/projects/portals/V.html; image:#five" title="V" scale=".25 .25 .25" rotation="0 -60 0"
+         position="-.75 1.6 .375"></a-link>
+      <a-link link="href:https://th3-sh0p.com:8443/projects/portals/VI.html; image:#six" title="VI" scale=".25 .25 .25" rotation="0 60 0"
+         position="-.75 1.6 -.375"></a-link>
+   </a-scene>
+
+   <script src="https://th3-sh0p.com:8443/js/jquery-1.12.4.min.js"></script>
+   <script>
+      (function ($) {
+         "use strict";
+
+         // Windows load
+
+         $(window).on("load", function () {
+
+            // Site loader 
+
+            $(".loader-inner").fadeOut();
+            $(".loader").delay(200).fadeOut("slow");
+
+         });
+      })(jQuery);
+   </script>
+</body>
+
+</html>
