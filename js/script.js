@@ -12,7 +12,6 @@
 
     });
 
-
     // Scroll to
 
     $(function() {
@@ -47,6 +46,12 @@
         transitionInEasing: 'linear',
         transitionOutEasing: 'linear'
 
+    });
+
+    $('.wrapper.home').bind('easytabs:after', function(event, click, target) {
+        $('html, body').animate({
+            scrollTop: $('[id="' + target.selector.substr(1) + '"]').offset().top - 40
+        }, 500);
     });
 
 
