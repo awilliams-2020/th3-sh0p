@@ -6,6 +6,8 @@ export type Project = {
   gscProperty: string;
   // Bing Webmaster siteUrl — the full verified URL (Bing has no sc-domain: form).
   bingSite: string;
+  // Matomo site id (Reporting API idSite). Omit for projects not tracked in Matomo.
+  matomoSiteId?: number;
   blurb: string;
   stack: string[];
   year: number;
@@ -19,6 +21,7 @@ export const projects: Project[] = [
     domain: "theqrcode.io",
     gscProperty: "sc-domain:theqrcode.io",
     bingSite: "https://theqrcode.io",
+    matomoSiteId: 4,
     blurb: "QR code API with scan analytics, REST endpoints, and an MCP server for Claude and Cursor.",
     stack: ["Next.js", "TypeScript", "Postgres", "Stripe", "MCP"],
     year: 2024,
@@ -30,6 +33,7 @@ export const projects: Project[] = [
     domain: "redbudway.com",
     gscProperty: "sc-domain:redbudway.com",
     bingSite: "https://redbudway.com",
+    matomoSiteId: 1,
     blurb: "Quote-and-invoice billing app for contractors — send priced quotes, take card payments, and get daily Stripe Connect payouts.",
     stack: ["React", "Go", "Stripe Connect", "Postgres"],
     year: 2026,
@@ -74,6 +78,7 @@ export const projects: Project[] = [
     domain: "confessionboard.com",
     gscProperty: "sc-domain:confessionboard.com",
     bingSite: "https://confessionboard.com",
+    matomoSiteId: 5,
     blurb: "Location-based PWA where anonymous confessions stay pinned to GPS coordinates for nearby visitors to find.",
     stack: ["Next.js", "Postgres", "Leaflet", "Tailwind"],
     year: 2025,

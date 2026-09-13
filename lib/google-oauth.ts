@@ -6,9 +6,11 @@ import { google } from "googleapis";
 export const APP_URL = process.env.APP_URL ?? "https://th3-sh0p.com";
 export const REDIRECT_URI = `${APP_URL}/api/auth/google/callback`;
 
-// webmasters.readonly to query Search Console; openid+email so we can verify who consented.
+// webmasters (read + write) so the host scripts can also submit sitemaps after deploys, not just query
+// Search Console; openid+email so we can verify who consented. A refresh token keeps the scopes it was
+// minted with — after changing this, sign in again and copy the new token.
 export const GSC_SCOPES = [
-  "https://www.googleapis.com/auth/webmasters.readonly",
+  "https://www.googleapis.com/auth/webmasters",
   "openid",
   "email",
 ];

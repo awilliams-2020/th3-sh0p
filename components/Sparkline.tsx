@@ -1,4 +1,4 @@
-type Point = { date: string; clicks: number; impressions: number };
+type Point = { date: string } & Record<string, number | string>;
 
 export function Sparkline({
   data,
@@ -7,7 +7,7 @@ export function Sparkline({
   height = 48,
 }: {
   data: Point[];
-  metric: "clicks" | "impressions";
+  metric: string;
   width?: number;
   height?: number;
 }) {
@@ -21,7 +21,7 @@ export function Sparkline({
       </div>
     );
   }
-  const values = data.map((d) => d[metric]);
+  const values = data.map((d) => Number(d[metric]) || 0);
   const max = Math.max(...values, 1);
   const min = Math.min(...values, 0);
   const step = width / (values.length - 1);

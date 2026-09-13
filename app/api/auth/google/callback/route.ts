@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { oauthClient, ownerAllowed, APP_URL } from "@/lib/google-oauth";
 import { saveRefreshToken } from "@/lib/gsc-token";
+import { mintSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,12 +37,27 @@ export async function GET(req: NextRequest) {
     if (!tokens.refresh_token) return back("norefresh");
 
     await saveRefreshToken(tokens.refresh_token, email);
+
+    // Owner verified — establish the console session and return where they were headed.
+    const next = req.cookies.get("manage_next")?.value;
+    const dest =
+      next && next.startsWith("/") && !next.startsWith("//")
+        ? `${APP_URL}${next}`
+        : `${APP_URL}/?gsc=connected`;
+    const res = NextResponse.redirect(dest);
+    const sess = mintSession(email as string);
+    res.cookies.set(sess.name, sess.value, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: sess.maxAge,
+    });
+    res.cookies.delete("gsc_oauth_state");
+    res.cookies.delete("manage_next");
+    return res;
   } catch (err) {
     console.error("[gsc-oauth] callback failed:", (err as Error).message);
     return back("error");
   }
-
-  const res = back("connected");
-  res.cookies.delete("gsc_oauth_state");
-  return res;
 }

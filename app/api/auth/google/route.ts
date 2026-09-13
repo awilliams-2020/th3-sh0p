@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { oauthClient, GSC_SCOPES } from "@/lib/google-oauth";
 
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 // Clicking the avatar hits this: kick off Google consent. access_type=offline + prompt=consent
 // guarantees a refresh_token comes back every time. A signed-ish state cookie guards against CSRF.
-export async function GET() {
+export async function GET(req: NextRequest) {
   const oauth = oauthClient();
   if (!oauth) {
     return NextResponse.json(
@@ -33,5 +33,17 @@ export async function GET() {
     path: "/",
     maxAge: 600,
   });
+
+  // Remember where to land after login (internal paths only) so /manage round-trips cleanly.
+  const next = req.nextUrl.searchParams.get("next");
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    res.cookies.set("manage_next", next, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 600,
+    });
+  }
   return res;
 }

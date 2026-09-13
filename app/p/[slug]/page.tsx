@@ -5,6 +5,7 @@ import path from "path";
 import { notFound } from "next/navigation";
 import { getProject } from "@/data/projects";
 import { getSearchReport } from "@/lib/search";
+import { getMatomoReport } from "@/lib/matomo";
 import { Sparkline } from "@/components/Sparkline";
 
 // Rendered dynamically: the GSC token (/app/.auth) and snapshot PNGs
@@ -34,6 +35,17 @@ function fmtPos(n: number) {
   return n > 0 ? n.toFixed(1) : "—";
 }
 
+function fmtPct(n: number) {
+  return `${Math.round(n * 100)}%`;
+}
+
+function fmtDuration(seconds: number) {
+  if (seconds <= 0) return "0s";
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
 export default async function ProjectPage({
   params,
 }: {
@@ -43,10 +55,14 @@ export default async function ProjectPage({
   const project = getProject(slug);
   if (!project) notFound();
 
-  const [search, hasSnap] = await Promise.all([
+  const [search, matomo, hasSnap] = await Promise.all([
     getSearchReport(project),
+    getMatomoReport(project.matomoSiteId),
     snapshotExists(project.slug),
   ]);
+
+  // 30d search clicks, for the direct visits-vs-search parallel in the Traffic card.
+  const search30dClicks = search.windows.find((w) => w.days === 30)?.clicks ?? 0;
 
   const liveEngines = [
     search.engines.google.configured && !search.engines.google.error && "Google",
@@ -182,6 +198,103 @@ export default async function ProjectPage({
               ))}
             </tbody>
           </table>
+        </section>
+      )}
+
+      {project.matomoSiteId != null && (
+        <section className="space-y-4">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-ink-400">
+            Traffic
+            <span className="ml-2 normal-case tracking-normal text-ink-400/70">
+              Matomo
+            </span>
+          </h2>
+          {matomo.configured && !matomo.error ? (
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {matomo.windows.map((w) => (
+                  <div
+                    key={w.days}
+                    className="rounded-lg border border-ink-600/40 p-4"
+                  >
+                    <div className="font-mono text-[10px] text-ink-400">
+                      {w.days}d
+                    </div>
+                    <div className="mt-2 font-mono">
+                      <div className="text-ink-400 text-xs">visits</div>
+                      <div className="text-lg">{fmt(w.visits)}</div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2 font-mono text-xs">
+                      <div>
+                        <div className="text-ink-400">bounce</div>
+                        <div className="text-sm">{fmtPct(w.bounceRate)}</div>
+                      </div>
+                      <div>
+                        <div className="text-ink-400">avg time</div>
+                        <div className="text-sm">{fmtDuration(w.avgTimeOnSite)}</div>
+                      </div>
+                      <div>
+                        <div className="text-ink-400">acts/visit</div>
+                        <div className="text-sm">{w.actionsPerVisit.toFixed(1)}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-lg border border-ink-600/40 p-4">
+                <div className="flex items-baseline justify-between">
+                  <div className="font-mono text-[10px] text-ink-400">
+                    visits · 30d
+                  </div>
+                  <div className="font-mono text-[10px] text-ink-400">
+                    search-driven clicks · 30d: {fmt(search30dClicks)}
+                  </div>
+                </div>
+                <div className="mt-2 text-ink-100">
+                  <Sparkline data={matomo.daily} metric="visits" />
+                </div>
+              </div>
+
+              {matomo.channels.length > 0 && (
+                <div className="rounded-lg border border-ink-600/40 p-4">
+                  <div className="font-mono text-[10px] text-ink-400">
+                    channels · 30d
+                  </div>
+                  <table className="mt-3 w-full font-mono text-xs">
+                    <tbody>
+                      {matomo.channels.map((c) => (
+                        <tr key={c.label} className="border-b border-ink-600/20">
+                          <td className="py-2">{c.label}</td>
+                          <td className="w-1/2 py-2 pl-3">
+                            <div className="h-1.5 w-full rounded-full bg-ink-600/20">
+                              <div
+                                className="h-1.5 rounded-full bg-ink-100/50"
+                                style={{ width: `${Math.round(c.share * 100)}%` }}
+                              />
+                            </div>
+                          </td>
+                          <td className="py-2 pl-3 text-right">{fmt(c.visits)}</td>
+                          <td className="py-2 pl-3 text-right text-ink-400">
+                            {fmtPct(c.share)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          ) : matomo.error ? (
+            <p className="font-mono text-xs text-ink-400">
+              Matomo query failed ({matomo.error}).
+            </p>
+          ) : (
+            <p className="font-mono text-xs text-ink-400">
+              No Matomo credentials configured (set MATOMO_INTERNAL_URL and
+              MATOMO_AUTH_TOKEN).
+            </p>
+          )}
         </section>
       )}
 
