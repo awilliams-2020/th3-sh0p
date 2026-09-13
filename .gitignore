@@ -1,0 +1,11 @@
+node_modules
+.next
+.env*.local
+.env
+*.log
+.DS_Store
+public/snapshots/*
+!public/snapshots/.gitkeep
+
+# TS incremental build cache
+tsconfig.tsbuildinfo

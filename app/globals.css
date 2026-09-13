@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular;
+  --bg: #0e0e0d;
+  --fg: #fafaf9;
+  --muted: #737370;
+  --line: #1f1f1d;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #fafaf9;
+  color: #0e0e0d;
+}
+
+a {
+  color: inherit;
+}
