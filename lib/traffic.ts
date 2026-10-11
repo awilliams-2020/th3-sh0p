@@ -13,7 +13,7 @@ export const OUTCOME_META: Record<Outcome, { label: string; color: string; note:
   served: { label: "Served", color: "#3987e5", note: "status below 400" },
   challenged: { label: "Challenged", color: "#e0a10b", note: "JS proof-of-work page (npiradar)" },
   blocked: { label: "Blocked", color: "#199e70", note: "403 / 429: bot filters, allowlists, rate limits" },
-  other: { label: "Not found / other", color: "#5f5e5a", note: "remaining 4xx, mostly 404" },
+  other: { label: "Not found / other", color: "#5f5e5a", note: "remaining 4xx (mostly 404) and client aborts" },
   error: { label: "Server error", color: "#d03b3b", note: "5xx from an app or the edge" },
 };
 
