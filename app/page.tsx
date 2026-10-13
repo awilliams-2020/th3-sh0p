@@ -3,6 +3,7 @@ import { projects } from "@/data/projects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { currentOwner } from "@/lib/session";
 import CopyRefreshToken from "@/components/CopyRefreshToken";
+import { TrafficSummary } from "@/components/traffic/TrafficSummary";
 
 // Reads the session cookie to reflect login state, so this page renders per-request.
 // (GSC stats are still cached independently via unstable_cache in lib/gsc.)
@@ -80,6 +81,8 @@ export default async function Home({
           <ProjectCard key={p.slug} project={p} />
         ))}
       </section>
+
+      <TrafficSummary />
 
       <footer className="border-t border-ink-600/30 pt-6 font-mono text-[11px] text-ink-400">
         <span>th3-sh0p</span>
