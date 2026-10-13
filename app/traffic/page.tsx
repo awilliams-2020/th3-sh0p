@@ -9,9 +9,11 @@ import {
   getDaily,
   getLatest,
   scope,
+  scopeTracked,
   type CrawlerRow,
   type OutcomeCounts,
   type SiteRow,
+  type WatchEvent,
 } from "@/lib/traffic";
 
 // Reads the rollup files on every request; they change every 10 minutes and are tiny.
@@ -35,6 +37,19 @@ function ago(iso: string) {
   const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
   return min < 1 ? "just now" : min < 90 ? `${min} min ago` : `${Math.round(min / 60)} h ago`;
 }
+
+const FAMILY: Record<string, string> = { chrome: "Chrome", firefox: "Firefox" };
+const RULE: Record<string, string> = { seed: "set by hand", arrival: "new UA from its networks", secondary: "low-volume UA" };
+
+function eventText(e: WatchEvent) {
+  const ua = `${FAMILY[e.family ?? ""] ?? "Browser"} UA`;
+  const act = e.action === "block" ? "blocked" : "slowed";
+  if (e.event === "add") return `${ua} added, ${act} · ${RULE[e.rule ?? ""] ?? e.rule}`;
+  if (e.event === "action") return `${ua} now ${act}`;
+  return `${ua} retired · ${e.why === "brake" ? "real visitors reached it from search" : "idle 72 h"}`;
+}
+
+const zeroCounts: OutcomeCounts = { served: 0, challenged: 0, blocked: 0, other: 0, error: 0 };
 
 function values(o: OutcomeCounts) {
   return Object.fromEntries(OUTCOMES.map((k) => [k, o[k]]));
@@ -183,6 +198,31 @@ export default async function TrafficPage() {
   });
   const siteRows = now.sites.map((r) => ({ ...r, name: projects.find((p) => p.slug === r.site)!.domain }));
   const o = now.outcomes;
+  const scraper = scopeTracked(latest.tracked, slugs);
+  const watch = latest.tracked?.watch;
+  const scraperHourly: Column[] = latest.hours.map((iso, i) => {
+    const d = new Date(iso);
+    const hh = `${String(d.getUTCHours()).padStart(2, "0")}:00`;
+    const solve = scraper.hourlySolveP50[i];
+    const pages = scraper.hourlyPages[i] ?? 0;
+    return {
+      label: hh,
+      title: `${d.toISOString().slice(5, 10)} ${hh} UTC · ${fmt.format(pages)} pages${solve === null || solve === undefined ? "" : ` · solve p50 ${solve} s`}`,
+      values: values(scraper.hourly[i] ?? zeroCounts),
+    };
+  });
+  const scraperDays: Column[] = daily
+    .filter((d) => d.tracked)
+    .map((d) => {
+      const t = scopeTracked(d.tracked, slugs);
+      const dt = new Date(`${d.date}T00:00:00Z`);
+      const label = dt.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+      return {
+        label,
+        title: `${label} (UTC day) · ${fmt.format(t.pages)} pages · ${fmt.format(t.ips)} IPs${t.solve.p50 === null ? "" : ` · solve p50 ${t.solve.p50} s`}`,
+        values: values(t.outcomes),
+      };
+    });
   const bots = now.crawlers.filter((c) => c.name !== "browsers & other");
   const botShare = bots.reduce((s, c) => s + c.requests, 0);
 
@@ -242,6 +282,65 @@ export default async function TrafficPage() {
       >
         <CrawlerTable rows={now.crawlers} total={now.total} />
       </Section>
+
+      {scraper.total > 0 && (
+        <Section
+          title={`Tracked: ${latest.tracked!.label.toLowerCase()}`}
+          sub="Last 24 hours."
+        >
+          {watch && (
+            <p className="font-mono text-xs text-ink-400">
+              {watch.blocked + watch.slowed} user agents · {watch.blocked} blocked · {watch.slowed} slowed
+              {scraper.bits ? ` (${scraper.bits}-bit)` : ""}
+              {watch.updated ? ` · checked ${ago(watch.updated)}` : ""}
+            </p>
+          )}
+          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {[
+              ["Pages taken", compact(scraper.pages), "served page loads"],
+              ["Blocked", compact(scraper.outcomes.blocked), pct(scraper.outcomes.blocked, scraper.total)],
+              ["Challenged", compact(scraper.outcomes.challenged), pct(scraper.outcomes.challenged, scraper.total)],
+              ["IPs", compact(scraper.ips), "distinct, last 24 h"],
+              ["Networks", compact(scraper.prefixes), "distinct /24s"],
+              [
+                "Solve time",
+                scraper.solve.p50 === null ? "—" : `${scraper.solve.p50} s`,
+                // A blocked UA never gets the challenge page, so a blank here can mean "nothing to time".
+                scraper.solve.p90 !== null
+                  ? `median · p90 ${scraper.solve.p90} s`
+                  : scraper.outcomes.challenged > 0
+                    ? "none solved"
+                    : scraper.outcomes.blocked > 0
+                      ? "all blocked, none challenged"
+                      : "median",
+              ],
+            ].map(([label, value, note]) => (
+              <div key={label} className="rounded-lg border border-ink-600/40 p-3">
+                <dt className="font-mono text-[11px] text-ink-400">{label}</dt>
+                <dd className="mt-1 text-lg font-semibold">{value}</dd>
+                <dd className="font-mono text-[10px] text-ink-400">{note}</dd>
+              </div>
+            ))}
+          </dl>
+          <Legend />
+          <StackedBars columns={scraperHourly} series={SERIES} labelEvery={6} ariaLabel="Tracked scraper requests per hour by outcome" />
+          {scraperDays.length > 0 && (
+            <StackedBars columns={scraperDays} series={SERIES} ariaLabel="Tracked scraper requests per day by outcome" />
+          )}
+          {watch && watch.events.length > 0 && (
+            <ol className="space-y-1 font-mono text-[11px] text-ink-400">
+              {watch.events
+                .slice(-10)
+                .reverse()
+                .map((e, i) => (
+                  <li key={i}>
+                    <span className="text-ink-100">{e.ts.slice(5, 16).replace("T", " ")} UTC</span> · {eventText(e)}
+                  </li>
+                ))}
+            </ol>
+          )}
+        </Section>
+      )}
 
       <Section
         title="By site"

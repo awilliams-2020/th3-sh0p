@@ -26,7 +26,43 @@ type RouterData = {
   robots?: Record<string, number>; // served /robots.txt fetches per crawler (included in served)
   hourly?: number[][]; // 24 x outcomeOrder (latest.json only)
 };
-type Rollup = { outcomeOrder: Outcome[]; crawlerKinds: Record<string, string>; routers: Record<string, RouterData> };
+// The scraper signature npiradar's jsgate hard-challenges, read from traefik by aggregate.py. The UA
+// itself is never written out; IPs are only counted and timed.
+type TrackedRouter = {
+  requests: number;
+  outcomes: OutcomeCounts;
+  pages: number; // served page loads (no RSC prefetches or assets)
+  ips: number;
+  prefixes: number; // distinct /24s (IPv6 /48)
+  challengedIps: number;
+  solve: { n: number; p50: number | null; p90: number | null }; // s from an IP's challenge to its first served request
+  hourly?: number[][];
+  hourlyPages?: number[];
+  hourlySolveP50?: (number | null)[];
+};
+// What ~/scripts/scraper-watch enforces (latest.json only): UAs by action, and its recent events.
+export type WatchEvent = {
+  ts: string;
+  event: "add" | "retire" | "action";
+  rule?: "seed" | "arrival" | "secondary";
+  action: "block" | "slow";
+  why?: "idle" | "brake"; // retire only
+  family?: "chrome" | "firefox";
+};
+export type Watch = { updated: string | null; blocked: number; slowed: number; events: WatchEvent[] };
+export type Tracked = {
+  label: string;
+  bits: number | null;
+  signatures: number;
+  routers: Record<string, TrackedRouter>;
+  watch?: Watch | null;
+};
+type Rollup = {
+  outcomeOrder: Outcome[];
+  crawlerKinds: Record<string, string>;
+  routers: Record<string, RouterData>;
+  tracked?: Tracked;
+};
 export type Latest = Rollup & { generatedAt: string; windowStart: string; windowEnd: string; hours: string[] };
 export type Daily = Rollup & { date: string };
 
@@ -110,4 +146,32 @@ export function compact(n: number) {
   if (n >= 10_000) return `${Math.round(n / 1000)}K`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
   return n.toString();
+}
+
+// The tracked signature summed over the given routers. Distinct-IP counts are summed per router,
+// which overcounts only if one IP hits several shown sites (in practice it is npiradar alone).
+export function scopeTracked(t: Tracked | undefined, routers: string[]) {
+  const outcomes = zero();
+  let pages = 0, ips = 0, prefixes = 0;
+  let hourly: OutcomeCounts[] = [], hourlyPages: number[] = [], hourlySolveP50: (number | null)[] = [];
+  let solve: TrackedRouter["solve"] = { n: 0, p50: null, p90: null };
+  for (const name of routers) {
+    const d = t?.routers[name];
+    if (!d) continue;
+    for (const k of OUTCOMES) outcomes[k] += d.outcomes[k] ?? 0;
+    pages += d.pages;
+    ips += d.ips;
+    prefixes += d.prefixes;
+    if (d.solve.n > solve.n) {
+      solve = d.solve; // percentiles don't sum: report the busiest router's, hourly ones too
+      hourlySolveP50 = d.hourlySolveP50 ?? [];
+    }
+    if (d.hourly) {
+      if (!hourly.length) hourly = d.hourly.map(zero);
+      d.hourly.forEach((h, i) => OUTCOMES.forEach((k, j) => (hourly[i][k] += h[j] ?? 0)));
+      (d.hourlyPages ?? []).forEach((n, i) => (hourlyPages[i] = (hourlyPages[i] ?? 0) + n));
+    }
+  }
+  const total = OUTCOMES.reduce((s, k) => s + outcomes[k], 0);
+  return { total, outcomes, pages, ips, prefixes, solve, hourly, hourlyPages, hourlySolveP50, bits: t?.bits ?? null };
 }
