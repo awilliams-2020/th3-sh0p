@@ -20,7 +20,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Edge traffic — th3-sh0p",
+  title: "Edge traffic — zwznco",
   description: "Every request through the edge proxy, the last 24 hours and daily history.",
 };
 
@@ -176,7 +176,7 @@ export default async function TrafficPage() {
     return (
       <main className="space-y-6">
         <Link href="/" className="font-mono text-xs text-ink-400 hover:text-ink-100">
-          ← th3-sh0p
+          ← zwznco
         </Link>
         <p className="text-sm text-ink-400">No traffic data yet.</p>
       </main>
@@ -230,7 +230,7 @@ export default async function TrafficPage() {
     <main className="space-y-14">
       <header className="space-y-3">
         <Link href="/" className="font-mono text-xs text-ink-400 hover:text-ink-100">
-          ← th3-sh0p
+          ← zwznco
         </Link>
         <h1 className="font-mono text-sm tracking-tight">Edge traffic</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-ink-100/80">

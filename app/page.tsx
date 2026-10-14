@@ -85,7 +85,7 @@ export default async function Home({
       <TrafficSummary />
 
       <footer className="border-t border-ink-600/30 pt-6 font-mono text-[11px] text-ink-400">
-        <span>th3-sh0p</span>
+        <span>zwznco</span>
         <span className="px-2">·</span>
         <a
           href="https://linkedin.com/in/awilliams1989"
