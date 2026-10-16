@@ -2,7 +2,6 @@ import Image from "next/image";
 import { projects } from "@/data/projects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { currentOwner } from "@/lib/session";
-import CopyRefreshToken from "@/components/CopyRefreshToken";
 import OperationsCard from "@/components/OperationsCard";
 import { TrafficSummary } from "@/components/traffic/TrafficSummary";
 
@@ -71,7 +70,6 @@ export default async function Home({
               >
                 manage console →
               </a>
-              <CopyRefreshToken />
               <OperationsCard />
             </div>
           )}
