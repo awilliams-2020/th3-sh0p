@@ -6,13 +6,11 @@ import { google } from "googleapis";
 export const APP_URL = process.env.APP_URL ?? "https://th3-sh0p.com";
 export const REDIRECT_URI = `${APP_URL}/api/auth/google/callback`;
 
-// webmasters (read + write) so the host scripts can also submit sitemaps after deploys, not just query
-// Search Console; indexing so they can ping the Indexing API (urlNotifications.publish) for changed
-// pages; openid+email so we can verify who consented. A refresh token keeps the scopes it was
-// minted with — after changing this, sign in again and copy the new token.
+// Read-only Search Console for this site's own traffic stats; openid+email to verify who signed in.
+// The host SEO scripts no longer use this sign-in: they get Search Console tokens from operations
+// (~/operations, 2026-10-16).
 export const GSC_SCOPES = [
-  "https://www.googleapis.com/auth/webmasters",
-  "https://www.googleapis.com/auth/indexing",
+  "https://www.googleapis.com/auth/webmasters.readonly",
   "openid",
   "email",
 ];
