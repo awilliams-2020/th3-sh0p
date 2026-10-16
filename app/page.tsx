@@ -97,6 +97,10 @@ export default async function Home({
         >
           linkedin.com/in/awilliams1989
         </a>
+        <span className="px-2">·</span>
+        <a href="/privacy" className="hover:text-ink-100">privacy</a>
+        <span className="px-2">·</span>
+        <a href="/terms" className="hover:text-ink-100">terms</a>
       </footer>
     </main>
   );
