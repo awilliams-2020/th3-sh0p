@@ -3,6 +3,7 @@ import { projects } from "@/data/projects";
 import { ProjectCard } from "@/components/ProjectCard";
 import { currentOwner } from "@/lib/session";
 import CopyRefreshToken from "@/components/CopyRefreshToken";
+import OperationsCard from "@/components/OperationsCard";
 import { TrafficSummary } from "@/components/traffic/TrafficSummary";
 
 // Reads the session cookie to reflect login state, so this page renders per-request.
@@ -71,6 +72,7 @@ export default async function Home({
                 manage console →
               </a>
               <CopyRefreshToken />
+              <OperationsCard />
             </div>
           )}
         </div>
