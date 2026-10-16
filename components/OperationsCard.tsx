@@ -1,5 +1,5 @@
 // Owner-only: the operations service's Google login (~/operations: ad conversion uploads, Keyword
-// Planner for research). Read server-side from its internal /status over the traefik network, so
+// Planner and Search Console for research). Read server-side from its internal /status over the traefik network, so
 // nothing about it is reachable from the browser; the only link out is its sign-in page.
 const STATUS_URL = process.env.OPS_STATUS_URL ?? "http://operations:3000/status";
 const CONNECT_URL = "https://zwznco.com/operations/connect";
@@ -11,6 +11,7 @@ type OpsStatus = {
   last_error: string | null;
   can_upload_conversions: boolean;
   can_price_keywords: boolean;
+  can_read_search_console: boolean;
   conversions: Record<string, number>;
   connect_url: string;
 };
@@ -32,9 +33,10 @@ const ago = (unix: number | null) => {
 
 export default async function OperationsCard() {
   const s = await load();
-  const ok = !!s?.signed_in && s.can_upload_conversions && s.can_price_keywords;
+  const ok = !!s?.signed_in && s.can_upload_conversions && s.can_price_keywords && s.can_read_search_console;
   const missing = s?.signed_in
-    ? [!s.can_upload_conversions && "Data Manager", !s.can_price_keywords && "Google Ads"].filter(Boolean).join(" + ")
+    ? [!s.can_upload_conversions && "Data Manager", !s.can_price_keywords && "Google Ads", !s.can_read_search_console && "Search Console"]
+        .filter(Boolean).join(" + ")
     : "";
   const failed = (s?.conversions.rejected ?? 0) + (s?.conversions.gave_up ?? 0);
 
